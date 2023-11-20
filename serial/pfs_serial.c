@@ -113,7 +113,7 @@ struct ser_dir
 struct pfs_file *ser_open (struct pfs_pfs *pfs, const char *dn, int oflag)
     {
     struct ser_pfs *ser = (struct ser_pfs *) pfs;
-    struct ser_file *fd = (struct ser_file *) malloc (sizeof (struct ser_file));
+    struct ser_file *fd = (struct ser_file *) pfs_malloc (sizeof (struct ser_file));
     if ( fd == NULL )
         {
         pfs_error (ENOMEM);
@@ -154,7 +154,7 @@ struct pfs_file *ser_open (struct pfs_pfs *pfs, const char *dn, int oflag)
             }
         }
     pfs_error (ENXIO);
-    free (fd);
+    pfs_free (fd);
     return NULL;
     }
 
@@ -268,7 +268,7 @@ int ser_rmdir (struct pfs_pfs *pfs, const char *pathname)
 void *ser_opendir (struct pfs_pfs *pfs, const char *name)
     {
     struct ser_pfs *ser = (struct ser_pfs *) pfs;
-    struct ser_dir *dd = (struct ser_dir *) malloc (sizeof (struct ser_dir));
+    struct ser_dir *dd = (struct ser_dir *) pfs_malloc (sizeof (struct ser_dir));
     if ( dd == NULL )
         {
         pfs_error (ENOMEM);
@@ -300,7 +300,7 @@ int ser_chmod (struct pfs_pfs *pfs, const char *pathname, mode_t mode)
 
 struct pfs_pfs *pfs_ser_create (void)
     {
-    struct ser_pfs *ser = (struct ser_pfs *) malloc (sizeof (struct ser_pfs));
+    struct ser_pfs *ser = (struct ser_pfs *) pfs_malloc (sizeof (struct ser_pfs));
     if ( ser == NULL ) return NULL;
     ser->entry = &ser_v_pfs;
     return (struct pfs_pfs *) ser;

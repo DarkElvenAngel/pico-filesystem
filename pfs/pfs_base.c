@@ -47,7 +47,7 @@ int pfs_init (void)
     {
     if ( num_handle != 0 ) return 0;
     num_handle = 3;
-    files = (struct pfs_file **) malloc (num_handle * sizeof (struct pfs_file *));
+    files = (struct pfs_file **) pfs_malloc (num_handle * sizeof (struct pfs_file *));
     if ( files == NULL ) return -2;
     const struct pfs_device *tty = pfs_dev_tty_fetch ();
     files[0] = tty->open (tty, NULL, O_RDWR);
@@ -66,7 +66,7 @@ int pfs_mount (struct pfs_pfs *pfs, const char *psMount)
     if ( ierr != 0 ) return ierr;
     if ( pfs == NULL ) return -6;
     int nlen = strlen (psMount);
-    struct pfs_mount *m = (struct pfs_mount *) malloc (sizeof (struct pfs_mount) + nlen + 2);
+    struct pfs_mount *m = (struct pfs_mount *) pfs_malloc (sizeof (struct pfs_mount) + nlen + 2);
     if ( m == NULL ) return -7;
     m->moved = NULL;
     const char *ps1 = psMount;
@@ -87,7 +87,7 @@ int pfs_mount (struct pfs_pfs *pfs, const char *psMount)
         }
     if ( *ps1 != '\0' )
         {
-        free (m);
+        pfs_free (m);
         return -8;
         }
     *ps2 = '\0';
@@ -95,7 +95,7 @@ int pfs_mount (struct pfs_pfs *pfs, const char *psMount)
         {
         if ( mounts != NULL )
             {
-            free (m);
+            pfs_free (m);
             return -9;
             }
         --ps2;
@@ -106,7 +106,7 @@ int pfs_mount (struct pfs_pfs *pfs, const char *psMount)
         {
         if ( strcmp (m->name, m2->name) == 0 )
             {
-            free (m);
+            pfs_free (m);
             return -10;
             }
         m2 = m2->next;
@@ -190,7 +190,7 @@ int _open (const char *fn, int oflag, ...)
     struct pfs_file *f = m->pfs->entry->open (m->pfs, rn, oflag);
     if ( f == NULL )
         {
-        free ((void *)fn);
+        pfs_free ((void *)fn);
         return -1;
         }
     f->pn = fn;
@@ -203,12 +203,12 @@ int _open (const char *fn, int oflag, ...)
             }
         }
     int nh = 2 * num_handle;
-    struct pfs_file ** fi2 = (struct pfs_file **) realloc (files, nh);
+    struct pfs_file ** fi2 = (struct pfs_file **) pfs_realloc (files, nh);
     if ( fi2 == NULL )
         {
         if ( f->entry->close != NULL ) f->entry->close (f);
-        free ((void *) f->pn);
-        free (f);
+        pfs_free ((void *) f->pn);
+        pfs_free (f);
         errno = ENFILE;
         return -1;
         }
@@ -231,8 +231,8 @@ int _close (int fd)
         {
         struct pfs_file *f = files[fd];
         int ierr = ( f->entry->close != NULL ) ? f->entry->close (f) : 0;
-        free ((void *)files[fd]->pn);
-        free (files[fd]);
+        pfs_free ((void *)files[fd]->pn);
+        pfs_free (files[fd]);
         files[fd] = NULL;
         return ierr;
         }
@@ -309,7 +309,7 @@ int _stat (const char *name, struct stat *buf)
     struct pfs_mount *m = reference (&name, &rname);
     if ( m == NULL ) return pfs_error (EINVAL);
     ierr = ( m->pfs->entry->stat != NULL ) ? m->pfs->entry->stat (m->pfs, rname, buf) : pfs_error (EINVAL);
-    free ((void *)name);
+    pfs_free ((void *)name);
     return ierr;
     }
 
@@ -324,7 +324,7 @@ int _link (const char *old, const char *new)
     struct pfs_mount *m2 = reference (&new, &rnew);
     if ( m2 == NULL )
         {
-        free ((void *)old);
+        pfs_free ((void *)old);
         return -1;
         }
     if ( m2 == m1 )
@@ -337,14 +337,14 @@ int _link (const char *old, const char *new)
         }
     if ( ierr == 0 )
         {
-        if ( m1->moved != NULL ) free ((void *)m1->moved);
+        if ( m1->moved != NULL ) pfs_free ((void *)m1->moved);
         m1->moved = old;
         }
     else
         {
-        free ((void *)old);
+        pfs_free ((void *)old);
         }
-    free ((void *)new);
+    pfs_free ((void *)new);
     return ierr;
     }
 
@@ -359,10 +359,10 @@ int _unlink (const char *name)
     if ( m->moved != NULL )
         {
         if (( ierr == -1 ) && ( strcmp (m->moved, name) == 0 )) ierr = 0;
-        free ((void *)m->moved);
+        pfs_free ((void *)m->moved);
         m->moved = NULL;
         }
-    free ((void *)name);
+    pfs_free ((void *)name);
     return ierr;
     }
 
@@ -372,7 +372,7 @@ int chdir (const char *path)
     if ( ierr != 0 ) return ierr;
     const char *pn = pname_append (cwd, path);
     if ( pn == NULL ) return -1;
-    free ((void *)cwd);
+    pfs_free ((void *)cwd);
     cwd = pn;
     return 0;
     }
@@ -385,7 +385,7 @@ int mkdir (const char *name, mode_t mode)
     struct pfs_mount *m = reference (&name, &rname);
     if ( m == NULL ) return -1;
     ierr = ( m->pfs->entry->mkdir != NULL ) ? m->pfs->entry->mkdir (m->pfs, rname, mode) : pfs_error (EPERM);
-    free ((void *)name);
+    pfs_free ((void *)name);
     return ierr;
     }
 
@@ -397,7 +397,7 @@ int rmdir (const char *name)
     struct pfs_mount *m = reference (&name, &rname);
     if ( m == NULL ) return -1;
     ierr = ( m->pfs->entry->rmdir != NULL ) ? m->pfs->entry->rmdir (m->pfs, rname) : pfs_error (EPERM);
-    free ((void *)name);
+    pfs_free ((void *)name);
     return ierr;
     }
 
@@ -422,7 +422,7 @@ void *opendir (const char *name)
         {
         if ( strcmp (name, "/") == 0 )
             {
-            d = (struct pfs_dir *) malloc (sizeof (struct pfs_dir));
+            d = (struct pfs_dir *) pfs_malloc (sizeof (struct pfs_dir));
             if ( d != NULL )
                 {
                 d->entry = NULL;
@@ -448,7 +448,7 @@ void *opendir (const char *name)
                 }
             }
         }
-    free ((void *)name);
+    pfs_free ((void *)name);
     return d;
     }
 
@@ -513,7 +513,7 @@ int closedir (void *dirp)
     if ( ierr != 0 ) return ierr;
     struct pfs_dir *d = (struct pfs_dir *) dirp;
     if ( d->entry != NULL ) ierr = ( d->entry->closedir != NULL ) ? d->entry->closedir (d) : 0;
-    free (d);
+    pfs_free (d);
     return ierr;
     }
 
@@ -525,7 +525,7 @@ int chmod (const char *name, mode_t mode)
     struct pfs_mount *m = reference (&name, &rname);
     if ( m == NULL ) return -1;
     ierr = ( m->pfs->entry->chmod != NULL ) ? m->pfs->entry->chmod (m->pfs, rname, mode) : 0;
-    free ((void *)name);
+    pfs_free ((void *)name);
     return ierr;
     }
 
@@ -548,6 +548,6 @@ char *realpath (const char *path, char *resolved_path)
         strncpy (ps, pn, PATH_MAX - 1);
         ps[PATH_MAX - 1] = '\0';
         }
-    free ((void *)pn);
+    pfs_free ((void *)pn);
     return ps;
     }

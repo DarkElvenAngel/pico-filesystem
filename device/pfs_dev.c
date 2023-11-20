@@ -103,7 +103,7 @@ STATIC int dev_stat (struct pfs_pfs *pfs, const char *name, struct stat *buf)
 STATIC void *dev_opendir (struct pfs_pfs *pfs, const char *name)
     {
     struct dev_pfs *dfs = (struct dev_pfs *) pfs;
-    struct dev_dir *dd = (struct dev_dir *) malloc (sizeof (struct dev_dir));
+    struct dev_dir *dd = (struct dev_dir *)pfs_malloc (sizeof (struct dev_dir));
     if ( dd == NULL )
         {
         pfs_error (ENOMEM);
@@ -131,7 +131,7 @@ struct pfs_pfs *pfs_dev_fetch (void)
 
 int pfs_mknod (const char *name, int mode, const struct pfs_device *dev)
     {
-    struct dev_device *ddv = (struct dev_device *) malloc (sizeof (const struct dev_device) + strlen (name) + 1);
+    struct dev_device *ddv = (struct dev_device *)pfs_malloc (sizeof (const struct dev_device) + strlen (name) + 1);
     if ( ddv == NULL ) return pfs_error (ENOMEM);
     ddv->next = s_dfs.devs;
     ddv->dev = dev;

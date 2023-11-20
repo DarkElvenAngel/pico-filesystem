@@ -130,7 +130,7 @@ STATIC struct pfs_file *gio_open (const struct pfs_device *dev, const char *name
         pfs_error (EACCES);
         return NULL;
         }
-    struct pfs_file *gio = (struct pfs_file *) malloc (sizeof (struct pfs_file));
+    struct pfs_file *gio = (struct pfs_file *)pfs_malloc (sizeof (struct pfs_file));
     if ( gio == NULL )
         {
         pfs_error (ENOMEM);
@@ -159,7 +159,7 @@ struct pfs_device *pfs_dev_gio_create (GIO_OUTPUT_RTN output, int ndata, int mod
             }
         nchk >>= 1;
         }
-    struct pfs_dev_gio *gio = (struct pfs_dev_gio *) malloc (sizeof (struct pfs_dev_gio) + ndata);
+    struct pfs_dev_gio *gio = (struct pfs_dev_gio *)pfs_malloc (sizeof (struct pfs_dev_gio) + ndata);
     if ( gio == NULL )
         {
         pfs_error (ENOMEM);

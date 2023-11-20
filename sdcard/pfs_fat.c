@@ -118,7 +118,7 @@ STATIC int fat_error (FRESULT r)
 STATIC struct pfs_file *fat_open (struct pfs_pfs *pfs, const char *fn, int oflag)
     {
     struct fat_pfs *fat = (struct fat_pfs *) pfs;
-    struct fat_file *fd = (struct fat_file *) malloc (sizeof (struct fat_file));
+    struct fat_file *fd = (struct fat_file *) pfs_malloc (sizeof (struct fat_file));
     if ( fd == NULL )
         {
         pfs_error (ENOMEM);
@@ -141,7 +141,7 @@ STATIC struct pfs_file *fat_open (struct pfs_pfs *pfs, const char *fn, int oflag
         {
         return (struct pfs_file *) fd;
         }
-    free (fd);
+    pfs_free (fd);
     fat_error (r);
     return NULL;
     }
@@ -231,7 +231,7 @@ STATIC int fat_rmdir (struct pfs_pfs *pfs, const char *name)
 STATIC void *fat_opendir (struct pfs_pfs *pfs, const char *name)
     {
     struct fat_pfs *fat = (struct fat_pfs *) pfs;
-    struct fat_dir *dd = (struct fat_dir *) malloc (sizeof (struct fat_dir));
+    struct fat_dir *dd = (struct fat_dir *) pfs_malloc (sizeof (struct fat_dir));
     if ( dd == NULL )
         {
         pfs_error (ENOMEM);
@@ -241,7 +241,7 @@ STATIC void *fat_opendir (struct pfs_pfs *pfs, const char *name)
     dd->fat = fat;
     FRESULT r = f_opendir (&dd->dir, name);
     if ( r == FR_OK ) return (void *) dd;
-    free (dd);
+    pfs_free (dd);
     fat_error (r);
     return NULL;
     }
@@ -274,13 +274,13 @@ STATIC int fat_chmod (struct pfs_pfs *pfs, const char *name, mode_t mode)
 
 struct pfs_pfs *pfs_fat_create (void)
     {
-    struct fat_pfs *fat = (struct fat_pfs *) malloc (sizeof (struct fat_pfs));
+    struct fat_pfs *fat = (struct fat_pfs *) pfs_malloc (sizeof (struct fat_pfs));
     if ( fat == NULL ) return NULL;
     fat->entry = &fat_v_pfs;
     FRESULT r = f_mount (&fat->vol, "0:", 1);
     if ( r != FR_OK )
         {
-        free (fat);
+        pfs_free (fat);
         fat_error (r);
         return NULL;
         }

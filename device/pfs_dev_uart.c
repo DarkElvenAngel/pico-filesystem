@@ -237,7 +237,7 @@ void uclose (int uid)
 
 STATIC struct pfs_file *uart_open (const struct pfs_device *dev, const char *name, int oflags)
     {
-    struct pfs_file *uart = (struct pfs_file *) malloc (sizeof (struct pfs_file));
+    struct pfs_file *uart = (struct pfs_file *)pfs_malloc (sizeof (struct pfs_file));
     if ( uart == NULL )
         {
         pfs_error (ENOMEM);
@@ -257,14 +257,14 @@ struct pfs_device *pfs_dev_uart_create (int uid, SERIAL_CONFIG *sc)
         uopen (uid, sc);
         return (struct pfs_device *) uart_dev[uid];
         }
-    uart_dev[uid] = (struct pfs_dev_uart *) malloc (sizeof (struct pfs_dev_uart));
+    uart_dev[uid] = (struct pfs_dev_uart *)pfs_malloc (sizeof (struct pfs_dev_uart));
     if ( uart_dev[uid] == NULL ) return NULL;
     uart_dev[uid]->open = uart_open;
     uart_dev[uid]->mode = IOC_MD_CR | IOC_MD_TLF;
     uart_dev[uid]->tout = 0;
     if ( uopen (uid, sc) ) return (struct pfs_device *) uart_dev[uid];
     uclose (uid);
-    free (uart_dev[uid]);
+   pfs_free (uart_dev[uid]);
     uart_dev[uid] = NULL;
     return NULL;
     }

@@ -35,7 +35,7 @@ STATIC const struct pfs_v_file tty_v_file =
 
 STATIC struct pfs_file *tty_open (const struct pfs_device *dev, const char *name, int oflags)
     {
-    struct pfs_file *tty = (struct pfs_file *) malloc (sizeof (struct pfs_file));
+    struct pfs_file *tty = (struct pfs_file *)pfs_malloc (sizeof (struct pfs_file));
     if ( tty == NULL )
         {
         pfs_error (ENOMEM);

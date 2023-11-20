@@ -12,7 +12,7 @@
 /*------------------------------------------------------------------------*/
 /* Allocate a memory block                                                */
 /*------------------------------------------------------------------------*/
-
+#ifndef ff_memalloc
 // extern char __StackLimit;
 void* ff_memalloc (	/* Returns pointer to the allocated memory block (null if not enough core) */
 	UINT msize		/* Number of bytes to allocate */
@@ -20,19 +20,19 @@ void* ff_memalloc (	/* Returns pointer to the allocated memory block (null if no
 {
 	return malloc(msize);	/* Allocate a new memory block with POSIX API */
 }
-
+#endif
 
 /*------------------------------------------------------------------------*/
 /* Free a memory block                                                    */
 /*------------------------------------------------------------------------*/
-
+#ifndef ff_memfree
 void ff_memfree (
 	void* mblock	/* Pointer to the memory block to free (nothing to do if null) */
 )
 {
 	free(mblock);	/* Free the memory block with POSIX API */
 }
-
+#endif
 #endif
 
 

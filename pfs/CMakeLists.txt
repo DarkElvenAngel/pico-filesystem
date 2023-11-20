@@ -13,7 +13,7 @@ if (NOT TARGET pico_filesystem)
   target_link_libraries(pico_filesystem INTERFACE
     pico_stdio
     pico_stdlib
-    pico_malloc
+    # pico_malloc
     pico_mem_ops
     )
   

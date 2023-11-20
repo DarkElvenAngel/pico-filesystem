@@ -27,7 +27,7 @@ static const struct pfs_v_file sio_v_file =
 
 struct pfs_file * pfs_stdio (int fd)
     {
-    struct pfs_file *f = (struct pfs_file *) malloc (sizeof (struct pfs_file));
+    struct pfs_file *f = (struct pfs_file *)pfs_malloc (sizeof (struct pfs_file));
     if ( f == NULL ) return NULL;
     f->entry = &sio_v_file;
     return f;

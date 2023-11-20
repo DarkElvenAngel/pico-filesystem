@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <pname.h>
+#include <pfs_private.h>
 
 #ifndef STATIC
 #define STATIC  static
@@ -28,7 +29,7 @@ STATIC void pname_clean (PNAME *pn)
     while (( pe1 != pn ) && ( pe1 != NULL ))
         {
         pe2 = pe1->next;
-        free (pe1);
+        pfs_free (pe1);
         pe1 = pe2;
         }
     pn->prev = pn;
@@ -38,7 +39,7 @@ STATIC void pname_clean (PNAME *pn)
 STATIC void pname_delete (PNAME *pn)
     {
     pname_clean (pn);
-    free (pn);
+    pfs_free (pn);
     }
 
 STATIC void pname_link (PNAME *pn, PNAME *pe)
@@ -66,7 +67,7 @@ STATIC bool pname_scan (PNAME *pn)
     const char * ps1 = pn->name;
     if (( *ps1 == '/' ) || ( *ps1 == '\\' ))
         {
-        PNAME *pe = (PNAME *) malloc (sizeof (PNAME));
+        PNAME *pe = (PNAME *) pfs_malloc (sizeof (PNAME));
         if ( pe == NULL ) return false;
         pe->name = &rootdir;
         pe->len = 1;
@@ -81,7 +82,7 @@ STATIC bool pname_scan (PNAME *pn)
         while (( *ps2 != '/' ) && ( *ps2 != '\\' ) && ( ps2 < pend )) ++ps2;
         if (( ps2 > ps1 + 1 ) || ( *ps1 != '.' ))
             {
-            PNAME *pe = (PNAME *) malloc (sizeof (PNAME));
+            PNAME *pe = (PNAME *) pfs_malloc (sizeof (PNAME));
             if ( pe == NULL ) return false;
             pe->name = ps1;
             pe->len = ps2 - ps1;
@@ -94,7 +95,7 @@ STATIC bool pname_scan (PNAME *pn)
 
 STATIC PNAME * pname_create (const char *psPath)
     {
-    PNAME *pn = (PNAME *) malloc (sizeof (PNAME));
+    PNAME *pn = (PNAME *) pfs_malloc (sizeof (PNAME));
     if ( pn == NULL ) return NULL;
     pn->prev = pn;
     pn->next = pn;
@@ -120,9 +121,9 @@ STATIC void pname_join (PNAME *pn1, PNAME *pn2)
             if (( pe1 != pn1 ) && ( pe1->name[0] != '/' ))
                 {
                 pname_unlink (pe1);
-                free (pe1);
+                pfs_free (pe1);
                 }
-            free (pe2);
+            pfs_free (pe2);
             }
         else
             {
@@ -141,7 +142,7 @@ char * pname_mkname (PNAME *pn)
         nlen += pe->len + 1;
         pe = pe->next;
         }
-    char *psName = (char *) malloc (nlen + 1);
+    char *psName = (char *) pfs_malloc (nlen + 1);
     if ( psName == NULL ) return NULL;
     char *ps = psName;
     pe = pn->next;

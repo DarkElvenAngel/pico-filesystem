@@ -90,7 +90,7 @@ struct ffs_dir
 STATIC struct pfs_file *ffs_open (struct pfs_pfs *pfs, const char *fn, int oflag)
     {
     struct ffs_pfs *ffs = (struct ffs_pfs *) pfs;
-    struct ffs_file *fd = (struct ffs_file *) malloc (sizeof (struct ffs_file));
+    struct ffs_file *fd = (struct ffs_file *)pfs_malloc (sizeof (struct ffs_file));
     if ( fd == NULL )
         {
         pfs_error (ENOMEM);
@@ -111,7 +111,7 @@ STATIC struct pfs_file *ffs_open (struct pfs_pfs *pfs, const char *fn, int oflag
     int r = lfs_file_open (&ffs->base, &fd->ft, fn, of);
     if ( r >= 0 ) return (struct pfs_file *) fd;
     pfs_error (r);
-    free (fd);
+   pfs_free (fd);
     return NULL;
     }
 
@@ -207,7 +207,7 @@ STATIC int ffs_rmdir (struct pfs_pfs *pfs, const char *pathname)
 STATIC void *ffs_opendir (struct pfs_pfs *pfs, const char *name)
     {
     struct ffs_pfs *ffs = (struct ffs_pfs *) pfs;
-    struct ffs_dir *dd = (struct ffs_dir *) malloc (sizeof (struct ffs_dir));
+    struct ffs_dir *dd = (struct ffs_dir *)pfs_malloc (sizeof (struct ffs_dir));
     if ( dd == NULL )
         {
         pfs_error (ENOMEM);
@@ -216,7 +216,7 @@ STATIC void *ffs_opendir (struct pfs_pfs *pfs, const char *name)
     dd->entry = &ffs_v_dir;
     dd->ffs = ffs;
     if ( lfs_dir_open (&ffs->base, &dd->dt, name) >= 0 ) return (void *) dd;
-    free (dd);
+   pfs_free (dd);
     return NULL;
     }
 
@@ -246,7 +246,7 @@ STATIC int ffs_chmod (struct pfs_pfs *pfs, const char *pathname, mode_t mode)
 
 struct pfs_pfs *pfs_ffs_create (const struct lfs_config *cfg)
     {
-    struct ffs_pfs *ffs = (struct ffs_pfs *) malloc (sizeof (struct ffs_pfs));
+    struct ffs_pfs *ffs = (struct ffs_pfs *)pfs_malloc (sizeof (struct ffs_pfs));
     if ( ffs == NULL ) return NULL;
     ffs->entry = &ffs_v_pfs;
     memcpy (&ffs->cfg, cfg, sizeof (struct lfs_config));
@@ -258,7 +258,7 @@ struct pfs_pfs *pfs_ffs_create (const struct lfs_config *cfg)
         }
     if ( r < 0 )
         {
-        free (ffs);
+       pfs_free (ffs);
         return NULL;
         }
     return (struct pfs_pfs *) ffs;

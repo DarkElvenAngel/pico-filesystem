@@ -39,7 +39,7 @@ STATIC struct pfs_file *gdd_open (const struct pfs_device *dev, const char *name
         pfs_error (EACCES);
         return NULL;
         }
-    struct pfs_file *gdd = (struct pfs_file *) malloc (sizeof (struct pfs_file));
+    struct pfs_file *gdd = (struct pfs_file *)pfs_malloc (sizeof (struct pfs_file));
     if ( gdd == NULL )
         {
         pfs_error (ENOMEM);
@@ -60,7 +60,7 @@ STATIC int gdd_write (struct pfs_file *fd, char *buffer, int length)
 
 struct pfs_device *pfs_dev_gdd_create (GIO_OUTPUT_RTN output)
     {
-    struct gdd_device *gdd = (struct gdd_device *) malloc (sizeof (struct gdd_device));
+    struct gdd_device *gdd = (struct gdd_device *)pfs_malloc (sizeof (struct gdd_device));
     if ( gdd == NULL )
         {
         pfs_error (ENOMEM);
