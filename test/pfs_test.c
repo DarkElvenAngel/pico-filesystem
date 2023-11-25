@@ -24,24 +24,22 @@ struct pfs_device *gio_dev;
 #endif
 #endif
 
-#define BI_PFS_TAG              BINARY_INFO_MAKE_TAG('P', 'F')
-#define BI_PFS_ID               0xAC95639A
+#define BI_PFS_TAG BINARY_INFO_MAKE_TAG('P', 'F')
+#define BI_PFS_ID 0xAC95639A
 
 bi_decl(bi_program_feature_group_with_flags(
-        BI_PFS_TAG, BI_PFS_ID, "pfs",
-        BI_NAMED_GROUP_SORT_ALPHA)
-    );
+    BI_PFS_TAG, BI_PFS_ID, "pfs",
+    BI_NAMED_GROUP_SORT_ALPHA));
 
 bi_decl(bi_block_device(
-        BI_PFS_TAG,
-        "pico-filesystem",
-        XIP_BASE + ROOT_OFFSET,
-        ROOT_SIZE,
-        NULL,
-        BINARY_INFO_BLOCK_DEV_FLAG_READ |
+    BI_PFS_TAG,
+    "pico-filesystem",
+    XIP_BASE + ROOT_OFFSET,
+    ROOT_SIZE,
+    NULL,
+    BINARY_INFO_BLOCK_DEV_FLAG_READ |
         BINARY_INFO_BLOCK_DEV_FLAG_WRITE |
-        BINARY_INFO_BLOCK_DEV_FLAG_PT_UNKNOWN)
-    );
+        BINARY_INFO_BLOCK_DEV_FLAG_PT_UNKNOWN));
 
 #if PICO_NO_FLASH
 
@@ -52,13 +50,13 @@ bi_decl(bi_block_device(
 #include "hardware/structs/ssi.h"
 
 void InitXip(void)
+{
+    if (ssi_hw->ssienr)
     {
-    if(ssi_hw->ssienr)
-        {
         printf("  SSI: enabled, nothing to do\n");
-        }
+    }
     else
-        {
+    {
         printf("  SSI: disabled, enabling\n");
 
         uint32_t resets = RESETS_RESET_IO_QSPI_BITS | RESETS_RESET_PADS_QSPI_BITS;
@@ -68,66 +66,66 @@ void InitXip(void)
 
         __compiler_memory_barrier();
 
-        ((void(*)(void))rom_func_lookup_inline(ROM_FUNC_CONNECT_INTERNAL_FLASH))();
-            ((void(*)(void))rom_func_lookup_inline(ROM_FUNC_FLASH_EXIT_XIP))();
-            ((void(*)(void))rom_func_lookup_inline(ROM_FUNC_FLASH_ENTER_CMD_XIP))();
+        ((void (*)(void))rom_func_lookup_inline(ROM_FUNC_CONNECT_INTERNAL_FLASH))();
+        ((void (*)(void))rom_func_lookup_inline(ROM_FUNC_FLASH_EXIT_XIP))();
+        ((void (*)(void))rom_func_lookup_inline(ROM_FUNC_FLASH_ENTER_CMD_XIP))();
 
-            ssi_hw->ssienr = 0;
-            ssi_hw->baudr = 16;
-            ssi_hw->ssienr = 1;
+        ssi_hw->ssienr = 0;
+        ssi_hw->baudr = 16;
+        ssi_hw->ssienr = 1;
 
-            ((void(*)(void))rom_func_lookup_inline(ROM_FUNC_FLASH_FLUSH_CACHE))();
+        ((void (*)(void))rom_func_lookup_inline(ROM_FUNC_FLASH_FLUSH_CACHE))();
 
-            __compiler_memory_barrier();
+        __compiler_memory_barrier();
 
-            printf("  SSI: enabled\n");
-        }
+        printf("  SSI: enabled\n");
     }
+}
 
 #endif
 
-void sc_cfg (int uid, SERIAL_CONFIG *psc)
-    {
+void sc_cfg(int uid, SERIAL_CONFIG *psc)
+{
     psc->baud = 115200;
     psc->parity = UART_PARITY_NONE;
     psc->data = 8;
     psc->stop = 1;
-    if ( uid == PICO_DEFAULT_UART )
-        {
+    if (uid == PICO_DEFAULT_UART)
+    {
         psc->tx = PICO_DEFAULT_UART_TX_PIN;
         psc->rx = PICO_DEFAULT_UART_RX_PIN;
-        }
-    else if ( uid == 0 )
-        {
+    }
+    else if (uid == 0)
+    {
         psc->tx = 0;
         psc->rx = 1;
-        }
+    }
     else
-        {
+    {
         psc->tx = 4;
         psc->rx = 5;
-        }
+    }
     psc->cts = -1;
     psc->rts = -1;
-    }
+}
 
-void echo_char (char ch)
-    {
-    printf ("%c", ch);
-    }
+void echo_char(char ch)
+{
+    printf("%c", ch);
+}
 
-int main (void)
-    {
+int main(void)
+{
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     stdio_init_all();
     int iLed = 0;
     while (!stdio_usb_connected())
-        {
+    {
         iLed = 1 - iLed;
-	    gpio_put(PICO_DEFAULT_LED_PIN, iLed);
+        gpio_put(PICO_DEFAULT_LED_PIN, iLed);
         sleep_ms(500);
-        }
+    }
     gpio_put(PICO_DEFAULT_LED_PIN, 0);
     printf("Starting\n");
     // ----------------------------------------------------------------------
@@ -137,7 +135,7 @@ int main (void)
 #endif
     // ----------------------------------------------------------------------
     printf("Initialising file system\n");
-        {
+    {
         struct pfs_pfs *pfs;
 #if HAVE_LFS
         struct lfs_config cfg;
@@ -155,145 +153,179 @@ int main (void)
 #endif
 #endif
 #if HAVE_DEV
-        pfs = pfs_dev_fetch ();
-        struct pfs_device *dev = pfs_dev_tty_fetch ();
-        pfs_mknod ("tty0", 0, dev);
+        pfs = pfs_dev_fetch();
+        struct pfs_device *dev = pfs_dev_tty_fetch();
+        pfs_mknod("tty0", 0, dev);
 
         SERIAL_CONFIG sc;
-        sc_cfg (0, &sc);
-        dev = pfs_dev_uart_create (0, &sc);
-        if ( dev != NULL ) pfs_mknod ("uart0", 0, dev);
+        sc_cfg(0, &sc);
+        dev = pfs_dev_uart_create(0, &sc);
+        if (dev != NULL)
+            pfs_mknod("uart0", 0, dev);
 
-        sc_cfg (1, &sc);
-        dev = pfs_dev_uart_create (1, &sc);
-        if ( dev != NULL ) pfs_mknod ("uart1", 0, dev);
+        sc_cfg(1, &sc);
+        dev = pfs_dev_uart_create(1, &sc);
+        if (dev != NULL)
+            pfs_mknod("uart1", 0, dev);
 
 #if HAVE_GIO
-        dev = pfs_dev_gdd_create (echo_char);
-        if ( dev != NULL ) pfs_mknod ("output", 0, dev);
+        dev = pfs_dev_gdd_create(echo_char);
+        if (dev != NULL)
+            pfs_mknod("output", 0, dev);
 
-        gio_dev = pfs_dev_gio_create (echo_char, 64, IOC_MD_CR | IOC_MD_TLF);
-        if ( gio_dev != NULL ) pfs_mknod ("inout", 0, gio_dev);
+        gio_dev = pfs_dev_gio_create(echo_char, 64, IOC_MD_CR | IOC_MD_TLF);
+        if (gio_dev != NULL)
+            pfs_mknod("inout", 0, gio_dev);
 #endif
         pfs_mount(pfs, "/dev");
 #endif
+    }
+
+    // ----------------------------------------------------------------------
+    printf("Read from stdin\npress <ESC> to finish\n");
+    {
+        int nread;
+        char c;
+        while ((nread = read(STDIN_FILENO, &c, 1)) != -1)
+        {
+            if (c == '\x1b') break;
+            if (c > 0)putchar(c);
         }
+        if (nread == -1 && errno != EAGAIN)
+            printf("ERROR %d\n",errno);
+    }
     // ----------------------------------------------------------------------
     printf("Writing File\n");
-        {
-        FILE * fp = fopen("pfs.txt", "w");
+    {
+        FILE *fp = fopen("pfs.txt", "w");
         fprintf(fp, "This was written by Memotech Bill's 'pico-filesystem'\n");
 #if PICO_NO_FLASH
         fprintf(fp, "Running in RAM\n");
 #endif
         fprintf(fp, "Built on %s %s\n", __DATE__, __TIME__);
         fclose(fp);
-        }
+    }
     // ----------------------------------------------------------------------
     printf("Reading file\n");
-        {
-        FILE * fp = fopen("pfs.txt", "r");
+    {
+        FILE *fp = fopen("pfs.txt", "r");
         int c;
-        while ((c = getc(fp)) != EOF) {
+        while ((c = getc(fp)) != EOF)
+        {
             printf("%c", c);
-            }
-        fclose(fp);
         }
+        fclose(fp);
+    }
+    // ----------------------------------------------------------------------
+    printf("Read from stdin\npress <ESC> to finish\n");
+    {
+        int nread;
+        char c;
+        while ((nread = read(STDIN_FILENO, &c, 1)) != -1)
+        {
+            if (c == '\x1b') break;
+            if (c > 0)putchar(c);
+        }
+        if (nread == -1 && errno != EAGAIN)
+            printf("ERROR %d\n",errno);
+    }
     // ----------------------------------------------------------------------
     printf("Creating subdirectory\n");
-        {
-        int ierr = mkdir ("/subdir", 0);
-        printf ("  mkdir (\"/subdir\") = %d\n", ierr);
-        }
+    {
+        int ierr = mkdir("/subdir", 0);
+        printf("  mkdir (\"/subdir\") = %d\n", ierr);
+    }
     // ----------------------------------------------------------------------
     printf("Reading directory\n");
-        {
-        DIR * dp = opendir("/");
+    {
+        DIR *dp = opendir("/");
         struct dirent *ep;
-        while ((ep = readdir(dp)) != NULL) {
+        while ((ep = readdir(dp)) != NULL)
+        {
             printf("  %s\n", ep->d_name);
-            }
-        closedir(dp);
         }
+        closedir(dp);
+    }
     // ----------------------------------------------------------------------
     printf("Changing directory\n");
-        {
+    {
         char dir[20];
-        int ierr = chdir ("/subdir");
-        printf ("  chdir (\"/subdir\") = %d\n", ierr);
-        printf ("  getwd () = %s\n", getcwd (dir, sizeof (dir)));
-        ierr = chdir ("/baddir");
-        printf ("  chdir (\"/baddir\") = %d\n", ierr);
-        printf ("  getwd () = %s\n", getcwd (dir, sizeof (dir)));
-        ierr = rmdir ("/subdir");
-        printf ("  rmdir (\"/subdir\") = %d\n", ierr);
-        if ( ierr != 0 )
-            {
-            ierr = chdir ("/");
-            printf ("  chdir (\"/\") = %d\n", ierr);
-            printf ("  getwd () = %s\n", getcwd (dir, sizeof (dir)));
-            ierr = rmdir ("/subdir");
-            printf ("  rmdir (\"/subdir\") = %d\n", ierr);
-            }
+        int ierr = chdir("/subdir");
+        printf("  chdir (\"/subdir\") = %d\n", ierr);
+        printf("  getwd () = %s\n", getcwd(dir, sizeof(dir)));
+        ierr = chdir("/baddir");
+        printf("  chdir (\"/baddir\") = %d\n", ierr);
+        printf("  getwd () = %s\n", getcwd(dir, sizeof(dir)));
+        ierr = rmdir("/subdir");
+        printf("  rmdir (\"/subdir\") = %d\n", ierr);
+        if (ierr != 0)
+        {
+            ierr = chdir("/");
+            printf("  chdir (\"/\") = %d\n", ierr);
+            printf("  getwd () = %s\n", getcwd(dir, sizeof(dir)));
+            ierr = rmdir("/subdir");
+            printf("  rmdir (\"/subdir\") = %d\n", ierr);
         }
+    }
     // ----------------------------------------------------------------------
 #if HAVE_DEV
     printf("Listing devices\n");
-        {
-        DIR * dp = opendir("/dev");
+    {
+        DIR *dp = opendir("/dev");
         struct dirent *ep;
-        while ((ep = readdir(dp)) != NULL) {
+        while ((ep = readdir(dp)) != NULL)
+        {
             printf("  %s\n", ep->d_name);
-            }
-        closedir(dp);
         }
+        closedir(dp);
+    }
     // ----------------------------------------------------------------------
     printf("Testing UART\n");
-        {
+    {
 #if PICO_DEFAULT_UART == 0
-        FILE *fp = fopen ("/dev/uart0", "r+");
+        FILE *fp = fopen("/dev/uart0", "r+");
 #else
-        FILE *fp = fopen ("/dev/uart1", "r+");
+        FILE *fp = fopen("/dev/uart1", "r+");
 #endif
-        int time_out = 30000000;    // 30 seconds
-        int fd = fileno (fp);
-        ioctl (fd, IOC_RQ_TOUT, &time_out);
-        fprintf (fp, "Hello from Pico. What do you have to say ?\r\n");
+        int time_out = 30000000; // 30 seconds
+        int fd = fileno(fp);
+        ioctl(fd, IOC_RQ_TOUT, &time_out);
+        fprintf(fp, "Hello from Pico. What do you have to say ?\r\n");
         char reply[512];
-        fgets (reply, sizeof (reply), fp);
-        printf ("Received reply: %s\n", reply);
-        fclose (fp);
-        }
+        fgets(reply, sizeof(reply), fp);
+        printf("Received reply: %s\n", reply);
+        fclose(fp);
+    }
 #if HAVE_GIO
-    printf ("Testing /dev/output\n");
-        {
-        FILE *fp = fopen ("/dev/output", "w");
-        fprintf (fp, "This string was written to /dev/output\n");
-        fclose (fp);
-        }
-    printf ("Testing /dev/inout\n");
-        {
-        FILE *fp = fopen ("/dev/inout", "w+");
-        fprintf (fp, "This string was written to /dev/inout\n");
-        printf ("Loading a string to read\n");
+    printf("Testing /dev/output\n");
+    {
+        FILE *fp = fopen("/dev/output", "w");
+        fprintf(fp, "This string was written to /dev/output\n");
+        fclose(fp);
+    }
+    printf("Testing /dev/inout\n");
+    {
+        FILE *fp = fopen("/dev/inout", "w+");
+        fprintf(fp, "This string was written to /dev/inout\n");
+        printf("Loading a string to read\n");
         const char *psMsg = "A string loaded into /dev/inout\r";
         while (*psMsg != '\0')
-            {
-            pfs_dev_gio_input (gio_dev, *psMsg);
+        {
+            pfs_dev_gio_input(gio_dev, *psMsg);
             ++psMsg;
-            }
-        char reply[512];
-        memset (reply, 0, sizeof (reply));
-        fgets (reply, sizeof (reply), fp);
-        printf ("Read from /dev/inout: %s\n", reply);
-        fclose (fp);
         }
-#endif    
+        char reply[512];
+        memset(reply, 0, sizeof(reply));
+        fgets(reply, sizeof(reply), fp);
+        printf("Read from /dev/inout: %s\n", reply);
+        fclose(fp);
+    }
+#endif
 #endif
     // ----------------------------------------------------------------------
     printf("Finished\n");
     while (true)
-        {
+    {
         sleep_ms(1000);
-        }
     }
+}
