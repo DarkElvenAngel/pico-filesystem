@@ -126,7 +126,7 @@ int _read (int handle, char *buffer, int length)
         {
         struct pfs_file *f = files[handle];
         if ( f->entry->read == NULL ) return pfs_error (EINVAL);
-        return f->entry->read (f, buffer, length);
+                return f->entry->read (f, buffer, length);
         }
     errno = EBADF;
     return -1;
@@ -196,14 +196,14 @@ int _open (const char *fn, int oflag, ...)
     f->pn = fn;
     for ( int fd = 0; fd < num_handle; ++fd )
         {
-        if ( files[fd] == NULL )
+                    if ( files[fd] == NULL )
             {
             files[fd] = f;
             return fd;
             }
         }
     int nh = 2 * num_handle;
-    struct pfs_file ** fi2 = (struct pfs_file **) pfs_realloc (files, nh);
+    struct pfs_file ** fi2 = (struct pfs_file **) pfs_realloc (files, sizeof(struct pfs_file) * nh);
     if ( fi2 == NULL )
         {
         if ( f->entry->close != NULL ) f->entry->close (f);
@@ -211,12 +211,12 @@ int _open (const char *fn, int oflag, ...)
         pfs_free (f);
         errno = ENFILE;
         return -1;
-        }
+        } 
     files = fi2;
     for (int fd = num_handle; fd < nh; ++fd)
         {
         files[fd] = NULL;
-        }
+                }
     int fd = num_handle;
     files[fd] = f;
     num_handle = nh;
