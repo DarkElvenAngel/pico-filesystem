@@ -169,7 +169,7 @@ STATIC int ffs_stat (struct pfs_pfs *pfs, const char *name, struct stat *buf)
     int r = lfs_stat (&ffs->base, name, &info);
     if ( r < 0 ) return pfs_error (r);
     memset (buf, 0, sizeof (struct stat));
-    buf->st_size = info.size;
+    buf->st_size = (info.type == LFS_TYPE_DIR) ? 0 : info.size;
     buf->st_blksize = 1;
     buf->st_blocks = info.size;
     buf->st_nlink = 1;
