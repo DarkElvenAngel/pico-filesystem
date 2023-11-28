@@ -13,7 +13,18 @@ struct pfs_device;
 extern "C" {
 #endif
 
-#include <pico_node.h>
+#ifdef PFS_EXT_CONFIG
+#include <pfs_conf.h>
+#endif
+#ifndef pfs_malloc
+#define pfs_malloc malloc
+#endif
+#ifndef pfs_realloc
+#define pfs_realloc realloc
+#endif
+#ifndef pfs_free
+#define pfs_free free
+#endif
 
 // Initialises the pico filesystem. In particular configures stdin,
 // stdout and stderr.
