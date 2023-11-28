@@ -35,7 +35,7 @@ static struct pfs_mount *mounts = NULL;
 static struct pfs_file ** files = NULL;
 static int num_handle = 0;
 static const char *cwd = NULL;
-static char rootdir = '/';
+static char *rootdir = "/";
 
 int pfs_error (int ierr)
     {
@@ -166,7 +166,7 @@ static struct pfs_mount *reference (const char **pn, const char **pr)
             {
             if ( (*pn)[m->nlen] == '\0' )
                 {
-                *pr = &rootdir;
+                *pr = rootdir;
                 return m;
                 }
             if ( (*pn)[m->nlen] == '/' )
@@ -203,7 +203,7 @@ int _open (const char *fn, int oflag, ...)
             }
         }
     int nh = 2 * num_handle;
-    struct pfs_file ** fi2 = (struct pfs_file **) realloc (files, nh * sizeof (pfs_file *));
+    struct pfs_file ** fi2 = (struct pfs_file **) realloc (files, nh * sizeof (struct pfs_file *));
     if ( fi2 == NULL )
         {
         if ( f->entry->close != NULL ) f->entry->close (f);
@@ -308,7 +308,7 @@ int _stat (const char *name, struct stat *buf)
     const char *rname;
     struct pfs_mount *m = reference (&name, &rname);
     if ( m == NULL ) return pfs_error (EINVAL);
-    ierr = ( m->pfs->entry->stat != NULL ) ? m->pfs->entry->stat (m->pfs, rname, buf) : pfs_error (EINVAL);
+        ierr = ( m->pfs->entry->stat != NULL ) ? m->pfs->entry->stat (m->pfs, rname, buf) : pfs_error (EINVAL);
     pfs_free ((void *)name);
     return ierr;
     }
